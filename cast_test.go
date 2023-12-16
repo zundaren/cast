@@ -1,8 +1,12 @@
-# cast
+package cast_test
 
-使用泛型简化 go 类型转换，并且是任意类型之间的转换。
+import (
+	"fmt"
+	"testing"
 
-```
+	"github.com/lvan100/cast"
+)
+
 func TestToInt(t *testing.T) {
 	v, err := cast.To[int](3.0)
 	if err != nil {
@@ -40,4 +44,3 @@ func TestToStruct(t *testing.T) {
 	}
 	fmt.Println(v)
 }
-```
