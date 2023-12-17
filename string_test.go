@@ -19,17 +19,17 @@ package cast_test
 import (
 	"bytes"
 	"errors"
+	"github.com/lvan100/cast"
+	"github.com/lvan100/cast/internal/assert"
 	"html/template"
 	"strconv"
 	"testing"
-
-	"github.com/lvan100/cast"
-	"github.com/lvan100/cast/internal/assert"
+	"time"
 )
 
 func BenchmarkToString(b *testing.B) {
-	// int/strconv-8    419501868 2.87 ns/op
-	// int/cast-8       60869038  18.2 ns/op
+	//int/strconv-8    419501868 2.87 ns/op
+	//int/cast-8       60869038  18.2 ns/op
 	b.Run("int", func(b *testing.B) {
 		v := 10
 		b.Run("strconv", func(b *testing.B) {
@@ -39,13 +39,11 @@ func BenchmarkToString(b *testing.B) {
 		})
 		b.Run("cast", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				_, err := cast.ToStringE(v)
-				if err != nil {
-					b.Fatal(err)
-				}
+				_ = cast.ToString(v)
 			}
 		})
 	})
+
 }
 
 func TestToString(t *testing.T) {
@@ -97,6 +95,28 @@ func TestToString(t *testing.T) {
 	assert.Equal(t, cast.ToString(errors.New("abc")), "abc")
 
 	type String string
-	_, err := cast.ToStringE(String("abc"))
-	assert.Error(t, err, "unable to cast type \\(cast_test\\.String\\) to string")
+	assert.Equal(t, cast.ToString(String("abc")), "abc")
+
+	var a []string = nil
+	assert.Equal(t, cast.ToString(a), "")
+	a = append(a, "1.2x")
+	assert.Equal(t, cast.ToString(a), "[\"1.2x\"]")
+	assert.Equal(t, cast.ToString([]int{2}), "[2]")
+
+	var time1 time.Time
+	assert.Equal(t, cast.ToString(time1), "0001-01-01 00:00:00 +0000 UTC")
+	var time2 *time.Time
+	assert.Equal(t, cast.ToString(time2), "")
+
+	type Stu struct {
+		Name string
+	}
+	var stu *Stu
+	assert.Equal(t, cast.ToString(stu), "")
+	stu = &Stu{Name: "test"}
+	assert.Equal(t, cast.ToString(stu), "{\"Name\":\"test\"}")
+
+	var f = func(a, b int) {}
+	_ = cast.ToString(&f)
+
 }

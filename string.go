@@ -17,97 +17,117 @@
 package cast
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"reflect"
 	"strconv"
+	"time"
 )
 
 // ToString casts an any to a string.
 // When type is clear, it is recommended to use standard library functions.
 func ToString(i any) string {
-	v, _ := ToStringE(i)
-	return v
-}
-
-// ToStringE casts an any to a string.
-// When type is clear, it is recommended to use standard library functions.
-func ToStringE(i any) (string, error) {
 	switch s := i.(type) {
 	case nil:
-		return "", nil
+		return ""
 	case int:
-		return strconv.Itoa(s), nil
+		return strconv.Itoa(s)
 	case int8:
-		return strconv.FormatInt(int64(s), 10), nil
+		return strconv.FormatInt(int64(s), 10)
 	case int16:
-		return strconv.FormatInt(int64(s), 10), nil
+		return strconv.FormatInt(int64(s), 10)
 	case int32:
-		return strconv.Itoa(int(s)), nil
+		return strconv.Itoa(int(s))
 	case int64:
-		return strconv.FormatInt(s, 10), nil
+		return strconv.FormatInt(s, 10)
 	case *int:
-		return strconv.Itoa(*s), nil
+		return strconv.Itoa(*s)
 	case *int8:
-		return strconv.FormatInt(int64(*s), 10), nil
+		return strconv.FormatInt(int64(*s), 10)
 	case *int16:
-		return strconv.FormatInt(int64(*s), 10), nil
+		return strconv.FormatInt(int64(*s), 10)
 	case *int32:
-		return strconv.Itoa(int(*s)), nil
+		return strconv.Itoa(int(*s))
 	case *int64:
-		return strconv.FormatInt(*s, 10), nil
+		return strconv.FormatInt(*s, 10)
 	case uint:
-		return strconv.FormatUint(uint64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10)
 	case uint8:
-		return strconv.FormatUint(uint64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10)
 	case uint16:
-		return strconv.FormatUint(uint64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10)
 	case uint32:
-		return strconv.FormatUint(uint64(s), 10), nil
+		return strconv.FormatUint(uint64(s), 10)
 	case uint64:
-		return strconv.FormatUint(s, 10), nil
+		return strconv.FormatUint(s, 10)
 	case *uint:
-		return strconv.FormatUint(uint64(*s), 10), nil
+		return strconv.FormatUint(uint64(*s), 10)
 	case *uint8:
-		return strconv.FormatUint(uint64(*s), 10), nil
+		return strconv.FormatUint(uint64(*s), 10)
 	case *uint16:
-		return strconv.FormatUint(uint64(*s), 10), nil
+		return strconv.FormatUint(uint64(*s), 10)
 	case *uint32:
-		return strconv.FormatUint(uint64(*s), 10), nil
+		return strconv.FormatUint(uint64(*s), 10)
 	case *uint64:
-		return strconv.FormatUint(*s, 10), nil
+		return strconv.FormatUint(*s, 10)
 	case float32:
-		return strconv.FormatFloat(float64(s), 'f', -1, 32), nil
+		return strconv.FormatFloat(float64(s), 'f', -1, 32)
 	case float64:
-		return strconv.FormatFloat(s, 'f', -1, 64), nil
+		return strconv.FormatFloat(s, 'f', -1, 64)
 	case *float32:
-		return strconv.FormatFloat(float64(*s), 'f', -1, 32), nil
+		return strconv.FormatFloat(float64(*s), 'f', -1, 32)
 	case *float64:
-		return strconv.FormatFloat(*s, 'f', -1, 64), nil
+		return strconv.FormatFloat(*s, 'f', -1, 64)
 	case string:
-		return s, nil
+		return s
 	case *string:
-		return *s, nil
+		return *s
 	case bool:
-		return strconv.FormatBool(s), nil
+		return strconv.FormatBool(s)
 	case *bool:
-		return strconv.FormatBool(*s), nil
+		return strconv.FormatBool(*s)
 	case []byte:
-		return string(s), nil
+		return string(s)
 	case template.HTML:
-		return string(s), nil
+		return string(s)
 	case template.URL:
-		return string(s), nil
+		return string(s)
 	case template.JS:
-		return string(s), nil
+		return string(s)
 	case template.CSS:
-		return string(s), nil
+		return string(s)
 	case template.HTMLAttr:
-		return string(s), nil
+		return string(s)
+	case *time.Time:
+		if s == nil {
+			return ""
+		}
+		return s.String()
 	case fmt.Stringer:
-		return s.String(), nil
+		return s.String()
 	case error:
-		return s.Error(), nil
+		return s.Error()
 	default:
-		return "", fmt.Errorf("unable to cast type (%T) to string", i)
+		rv := reflect.ValueOf(s)
+		kind := rv.Kind()
+
+		switch kind {
+		case reflect.Chan, reflect.Map, reflect.Slice, reflect.Func,
+			reflect.Ptr, reflect.Interface, reflect.UnsafePointer:
+			if rv.IsNil() {
+				return ""
+			}
+			if kind == reflect.Ptr {
+				return ToString(rv.Elem().Interface())
+			}
+		case reflect.String:
+			return rv.String()
+		}
+
+		if jb, err := json.Marshal(s); err == nil {
+			return string(jb)
+		}
+		return fmt.Sprint(s)
 	}
 }
