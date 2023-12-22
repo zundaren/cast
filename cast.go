@@ -92,9 +92,8 @@ func to(i any, v any, opts ...Option) error {
 		r, err = ToFloat64E(i)
 		*p = r
 	case *string:
-		var r string
-		r, err = ToStringE(i)
-		*p = r
+		*p = ToString(i)
+		err = nil
 	case *time.Duration:
 		var r time.Duration
 		r, err = ToDurationE(i, opts...)
